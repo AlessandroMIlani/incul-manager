@@ -32,16 +32,17 @@ mkdir -p /home/$USER/.config/menus
 mkdir -p /home/$USER/.config/inculs-manager
 mkdir -p /home/$USER/.config/inculs-manager/configs
 
-sudo cp -r /etc/inculs-manager/launcher-config/desktop-directories /home/$USER/.local/share/
-sudo cp /etc/inculs-manager/launcher-config/xfce-applications.menu /home/$USER/.config/menus
-
-read -n 1 -s -r -p ""
 
 git clone https://github.com/AlessandroMIlani/incul-manager -b dev
 dpkg-deb --root-owner-group --build incul-manager
 sudo apt install ./incul-manager.deb --fix-broken
 rm incul-manager.deb
 
+
+sudo cp -r /etc/inculs-manager/launcher-config/desktop-directories /home/$USER/.local/share/
+sudo cp /etc/inculs-manager/launcher-config/xfce-applications.menu /home/$USER/.config/menus
+
+read -n 1 -s -r -p ""
 
 if [ "$need_reboot" = true ]; then
 	echo -e "\n\e[1;33mIncul needs restart. This action requires confirmation. Press any key to continue...\e[0m"
