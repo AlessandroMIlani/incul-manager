@@ -35,7 +35,7 @@ mkdir -p /home/$USER/.config/inculs-manager/configs
 
 git clone https://github.com/AlessandroMIlani/incul-manager -b dev
 dpkg-deb --root-owner-group --build incul-manager
-sudo apt install ./incul-manager.deb --fix-broken
+sudo apt -y install ./incul-manager.deb --fix-broken
 rm incul-manager.deb
 
 
@@ -51,5 +51,5 @@ if [ "$need_reboot" = true ]; then
 else
 	echo "No need to reboot."
 fi
-
+    
 echo -e "\n\e[1;32mInstallation complete!\e[0m"
