@@ -20,7 +20,7 @@ This project is a hobbyist endeavor and not developed by a security expert. It d
    # create the deb package
    dpkg-deb --root-owner-group --build incul-manager
    # install the deb package
-   sudo dpkg -i incul-manager.deb
+   sudo apt install incul-manager.deb --fix-broken
    ```
 
 ## Getting Started

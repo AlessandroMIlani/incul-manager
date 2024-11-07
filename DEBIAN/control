@@ -3,4 +3,4 @@ Version: 0.1
 Architecture: all
 Maintainer: Muna Bedan <munabedan@gmail.com>
 Description: A qubes-like manager for incus containers
-Depends: python3 (>=3.11)
+Depends: python3 (>=3.11), python3-netifaces, xpra, python3-cups, python3-opencv, python3-gi-cairo, xfce4-notifyd
