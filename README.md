@@ -15,12 +15,7 @@ This project is a hobbyist endeavor and not developed by a security expert. It d
 ## Installation
 
    ```bash
-   # clone the repository
-   git clone https://github.com/AlessandroMIlani/incul-manager
-   # create the deb package
-   dpkg-deb --root-owner-group --build incul-manager
-   # install the deb package
-   sudo apt install incul-manager.deb --fix-broken
+   wget -O - https://raw.githubusercontent.com/AlessandroMIlani/Incul-manager/dev/install.sh | bash
    ```
 
 ## Getting Started
