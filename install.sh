@@ -32,9 +32,12 @@ mkdir -p /home/$USER/.config/menus
 mkdir -p /home/$USER/.config/inculs-manager
 mkdir -p /home/$USER/.config/inculs-manager/configs
 
+# Step 4: Install incul-manager
 git clone https://github.com/AlessandroMIlani/incul-manager -b dev
 dpkg-deb --root-owner-group --build incul-manager
-sudo apt -y install ./incul-manager.deb --fix-broken
+sudo dpkg -i incul-manager.deb
+sudo apt -y -f install
+
 
 sudo cp -r /etc/inculs-manager/launcher-config/desktop-directories /home/$USER/.local/share/
 sudo cp /etc/inculs-manager/launcher-config/xfce-applications.menu /home/$USER/.config/menus
@@ -49,4 +52,4 @@ else
 	echo "No need to reboot."
 fi
     
-echo -e "\n\e[1;32mInstallation complete!\e[0m"
+echo "\n\e[1;32mInstallation complete!\e[0m"
