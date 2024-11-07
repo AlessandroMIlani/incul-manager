@@ -32,12 +32,9 @@ mkdir -p /home/$USER/.config/menus
 mkdir -p /home/$USER/.config/inculs-manager
 mkdir -p /home/$USER/.config/inculs-manager/configs
 
-
 git clone https://github.com/AlessandroMIlani/incul-manager -b dev
 dpkg-deb --root-owner-group --build incul-manager
 sudo apt -y install ./incul-manager.deb --fix-broken
-rm incul-manager.deb
-
 
 sudo cp -r /etc/inculs-manager/launcher-config/desktop-directories /home/$USER/.local/share/
 sudo cp /etc/inculs-manager/launcher-config/xfce-applications.menu /home/$USER/.config/menus
