@@ -6,10 +6,9 @@ import subprocess
 import os
 import time
 import shutil
+import re
 
 # create  incul container
-# - create incul container
-# - append incul container .desktop files to host .desktop files
 def create(container_name):
     subprocess.run(["incus", "copy", "incul-template", container_name])
     shutil.copy("/etc/inculs-manager/config.sh", f"/home/{os.environ['USER']}/.config/incul-manager/{container_name}-config.sh")
@@ -18,18 +17,19 @@ def create(container_name):
     subprocess.run(["incus", "network", "detach", "def", container_name])
     subprocess.run(["incus", "network", "create", f"net-{container_name}"])
     subprocess.run(["incus", "network", "attach", f"net-{container_name}", container_name])
-    
 
     start(container_name)
 
     # wait for container to start
-    # TODO: check for ip availability instead
-    time.sleep(5)
+    while True:
+        time.sleep(1)
+        ip = get_container_ip(container_name)
+        if re.match(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$", ip):
+            break
     
     new_user(container_name)
     
     sync()
-
     restart_panel()
 
 def new_user(container_name):
@@ -40,16 +40,16 @@ def new_user(container_name):
         password = input("Enter the new password: ").strip()
         
         # Update the config file with the new username and password
-        with open(f"/home/{os.environ['USER']}/.config/incul-manager/{container_name}-config.sh", "r") as file:
-            config_lines = file.readlines()
-        with open(f"/home/{os.environ['USER']}/.config/incul-manager/{container_name}-config.sh", "w") as file:
-            for line in config_lines:
-                if line.startswith("username="):
-                    file.write(f'username="{username}"\n')
-                elif line.startswith("password="):
-                    file.write(f'password="{password}"\n')
-                else:
-                    file.write(line)
+        with open(f"/home/{os.environ['USER']}/.config/incul-manager/{container_name}-config.sh", "r+") as file:
+            lines = [
+                f'username="{username}"\n' if line.startswith("username=") else
+                f'password="{password}"\n' if line.startswith("password=") else
+                line
+                for line in file.readlines()
+            ]
+            file.seek(0)
+            file.writelines(lines)
+            file.truncate()
         
         # Push the updated config file to the container and delete the default user
         subprocess.run(["incus", "file", "push", f"/home/{os.environ['USER']}/.config/incul-manager/{container_name}-config.sh", f"{container_name}/root/config.sh"])
@@ -64,7 +64,6 @@ def new_user(container_name):
 
 def create_ssh_keys(container_name, username):
     ip_address = get_container_ip(container_name)
-    public_key = open(f"/home/{os.environ['USER']}/.ssh/incul-id_rsa.pub", "r").read()
     
     # Create the .ssh directory and add give correct permissions to the folder
     subprocess.run(["incus", "exec", container_name, "--", "mkdir", "-p", f"/home/{username}/.ssh"])
@@ -75,21 +74,21 @@ def create_ssh_keys(container_name, username):
     subprocess.run(["ssh-copy-id", "-i", f"/home/{os.environ['USER']}/.ssh/incul-id_rsa.pub", f"{username}@{ip_address}"])
     
     # Remove the password info from the config file
-    with open(f"/home/{os.environ['USER']}/.config/incul-manager/{container_name}-config.sh", "r") as file:
-            config_lines = file.readlines()
-    with open(f"/home/{os.environ['USER']}/.config/incul-manager/{container_name}-config.sh", "w") as file:
-        for line in config_lines:
-            if line.startswith("password="):
-                file.write(f'password=" "\n')
-            else:
-                file.write(line)
+    with open(f"/home/{os.environ['USER']}/.config/incul-manager/{container_name}-config.sh", "r+") as file:
+        lines = [
+            'password=" "\n' if line.startswith("password=") else line
+            for line in file.readlines()
+        ]
+        file.seek(0)
+        file.writelines(lines)
+        file.truncate()
 
 def get_container_ip(container_name):
     result = subprocess.run(
         f"incus list | grep {container_name} | awk -F'|' '{{split($4, a, \"(\"); print a[1]}}'",
-        shell=True,
-        stdout=subprocess.PIPE
+        shell=True, stdout=subprocess.PIPE
     )
+    
     return result.stdout.decode("utf-8").strip().replace(" ", "")
 
 def start(container_name):
@@ -130,56 +129,52 @@ def list_containers():
     subprocess.run(["incus", "list"])
 
 
+def check_container_exist(container_name):
+    result = subprocess.run(
+        f"incus list | grep {container_name}",
+        shell=True, stdout=subprocess.PIPE
+    )
+    
+    return result.returncode == 0
+
 def sync():
 
     command = ["incus", "list", "-c", "n", "--format=csv"]
 
     try:
 
-        result = subprocess.run(
-            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True
-        )
-
+        result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
         output = result.stdout.decode("utf-8")
-
         print("output:", output)
-
+        
         container_names = [name.strip() for name in output.splitlines()]
-
         print("container names:", container_names)
-
-        script_path = "incul-sync-clean"
-        run_script(script_path)
-
+        
+        run_script("incul-sync-clean")
+        
         for container_name in container_names:
             script_path = "incul-sync"
             run_script(script_path, container_name)
-
+    
         restart_panel()
-
+    
     except subprocess.CalledProcessError as e:
         print("Error:", e)
         print("Command output (stderr):", e.stderr.decode("utf-8"))
-
 
 def init():
     script_path = "incul-init"
     run_script(script_path)
 
-
 def create_template():
     script_path = "incul-create-template"
     run_script(script_path)
-
-    # TODO: be able to create different templates
-
 
 def run_script(script_path, variables=""):
     try:
         subprocess.run(["bash", script_path, variables], check=True)
     except subprocess.CalledProcessError as e:
         print(f"Error running the script: {e}")
-
 
 def restart_panel():
     script_path = "restart-xfce4-panel"
@@ -214,7 +209,7 @@ if __name__ == "__main__":
 
     if action not in actions:
         print(
-            "Invalid action. Please choose one of: create|run|pause|stop|restart|backup|delete|list"
+            f"Invalid action. Please choose one of: {'|'.join(actions.keys())}"
         )
         sys.exit(1)
 
