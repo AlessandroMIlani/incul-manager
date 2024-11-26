@@ -10,15 +10,13 @@ This project is a hobbyist endeavor and not developed by a security expert. It d
 
 ## Requirements
 
-- Debian XFCE installed as the base operating system.
-
+- Debian 12 (Bookworm) 
+- XFCE4 desktop environment
 
 ## Installation
 
-1. **Download**: Obtain the `.deb` package of Incul-manager.
-2. **Install**: Run the following command in your terminal:
    ```
-   sudo dpkg -i incul-manager.deb
+   curl -s https://raw.githubusercontent.com/AlessandroMIlani/incul-manager/refs/heads/personal-main/install.sh | bash
    ```
 
 ## Getting Started
@@ -36,9 +34,9 @@ This project is a hobbyist endeavor and not developed by a security expert. It d
    This template includes essential applications like Thunar, XFCE4-terminal, and more.
 
 3. **Manage Containers**: Create and manage containers using commands like:
-   - `incul-manager create-container` to create new containers.
+   - `incul-manager create <container-name>` to create new containers.
    - `incul-manager list` to list all created containers.
-   - `incul-manager delete` to remove containers when no longer needed.
+   - `incul-manager delete <container-name>` to remove containers when no longer needed.
 
 4. **Application Integration**: Sync container applications to the host menu with:
    ```
