@@ -11,7 +11,7 @@ This project is a hobbyist endeavor and not developed by a security expert. It d
 ## Requirements
 
 - Debian 12 (Bookworm) 
-- XFCE4 desktop environment
+- XFCE4/KDE desktop environment
 
 ## Installation
 
