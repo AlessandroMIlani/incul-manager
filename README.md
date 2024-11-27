@@ -21,32 +21,26 @@ This project is a hobbyist endeavor and not developed by a security expert. It d
 
 ## Getting Started
 
-1. **Initialize**: Configure your system with Incul-manager by running:
-   ```
-   incul-manager init
-   ```
-   This sets up the necessary dependencies including Incus system containers.
-
-2. **Create Template**: Create a Debian-based Incus system container template:
+1. **Create Template**: Create a Debian-based Incus system container template:
    ```
    incul-manager create-template
    ```
    This template includes essential applications like Thunar, XFCE4-terminal, and more.
 
-3. **Manage Containers**: Create and manage containers using commands like:
+2. **Manage Containers**: Create and manage containers using commands like:
    - `incul-manager create <container-name>` to create new containers.
    - `incul-manager list` to list all created containers.
    - `incul-manager delete <container-name>` to remove containers when no longer needed.
 
-4. **Application Integration**: Sync container applications to the host menu with:
+3. **Application Integration**: Sync container applications to the host menu with:
    ```
    incul-manager sync
    ```
    This integrates container applications seamlessly into your desktop environment.
 
-5. **Running Applications**: Launch applications within containers directly from the updated host menu. 
+4. **Running Applications**: Launch applications within containers directly from the updated host menu. 
 
-6. **Additional Features**: Utilize XPRA for managing X11 applications remotely, clipboard sharing, and file uploads to containers.
+5. **Additional Features**: Utilize XPRA for managing X11 applications remotely, clipboard sharing, and file uploads to containers.
 
 ## Architecture
 
@@ -61,5 +55,3 @@ Incul-manager utilizes Incus containers, developed as an alternative to LXD, and
 ## Feedback and Contributions
 
 - This project is open to contributions and feedback.
-
-
