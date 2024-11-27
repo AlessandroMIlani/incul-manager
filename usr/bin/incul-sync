@@ -2,11 +2,17 @@
 
 echo -e "\n\e[1;33mSynchronize host menu...\e[0m"
 
+gnome_flag=0
 # check the DE in use
 if echo $XDG_CURRENT_DESKTOP | grep -q "XFCE"; then
 	file_path="/home/$USER/.config/menus/xfce-applications.menu"
 elif echo $XDG_CURRENT_DESKTOP | grep -q "KDE"; then
 	file_path="/home/$USER/.config/menus/kf5-applications.menu"
+elif echo $XDG_CURRENT_DESKTOP | grep -q "GNOME"; then
+	gnome_flag=1
+else
+	echo "Desktop environment not supported"
+	exit 1
 fi
 
 container_name="$1"
@@ -24,6 +30,7 @@ Name=${container_name^}
 Comment=${container_name^} Container
 EOF
 
+
 # Define the content to be added
 menu_content="<Menu>\n<Name>${container_name^}</Name>\n<Directory>incul-$container_name.directory</Directory>\n<Include>\n<Category>Incul-${container_name^}</Category>\n</Include>\n</Menu>"
 
@@ -32,12 +39,16 @@ layout_content="<Menuname>${container_name^}</Menuname>"
 # Use sed to insert menu
 C=$(echo $menu_content | sed 's/\//\\\//g')
 
-sed -i "/<\!--Insert-container-menu-->/ s/.*/${C}\n&/" "$file_path"
+if gnome_flag=1; then
+	sed -i "/<\!--Insert-container-menu-->/ s/.*/${C}\n&/" "$file_path"
+fi
 
 # use sed to insert layout
 C=$(echo $layout_content | sed 's/\//\\\//g')
 
-sed -i "/<!--Insert-container-menu-layout-->/ s/.*/${C}\n&/" "$file_path"
+if gnome_flag=1; then
+	sed -i "/<!--Insert-container-menu-layout-->/ s/.*/${C}\n&/" "$file_path"
+fi
 
 # Folder path containing .desktop files
 folder_path="/home/$USER/.local/share/applications/$container_name"
@@ -114,3 +125,26 @@ for file in "$folder_path"/*.desktop; do
 		echo "Updated Exec in $file"
 	fi
 done
+
+if gnome_flag=1; then
+	containers=$(incus -c n list --format=csv)
+
+	containers=$(echo $containers | tr ' ' ',')
+	containers_quote=$(echo $containers | sed "s/\([^,]*\)/'\1'/g")
+
+	echo "Setting folder-children..."
+	gsettings set org.gnome.desktop.app-folders folder-children "[$containers_quote]"
+
+	IFS=', ' read -r -a containers_array <<< "$containers"
+
+	for container in "${containers_array[@]}"; do
+		echo "Setting name for $container..."
+		gsettings set org.gnome.desktop.app-folders.folder:/org/gnome/desktop/app-folders/folders/$container/ name "'$container'"
+
+		echo "Setting translate for $container..."
+		gsettings set org.gnome.desktop.app-folders.folder:/org/gnome/desktop/app-folders/folders/$container/ translate true
+
+		echo "Setting categories for $container..."
+		gsettings set org.gnome.desktop.app-folders.folder:/org/gnome/desktop/app-folders/folders/$container/ categories "['Incul-${container^}']"
+	done
+fi

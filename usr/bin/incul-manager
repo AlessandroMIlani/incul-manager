@@ -152,10 +152,12 @@ def sync():
         
         run_script("incul-sync-clean")
         
+        
+        
         for container_name in container_names:
             script_path = "incul-sync"
             run_script(script_path, container_name)
-    
+
         if os.environ.get("XDG_CURRENT_DESKTOP") == "XFCE":
             restart_panel()
     
@@ -224,7 +226,4 @@ if __name__ == "__main__":
     # TODO: be able to create different templates
     if action == "create-template":
         actions[action]()
-
-    elif container_name is None:
-        print("Please provide a container name for this action.")
-        sys.exit(1)
+    
