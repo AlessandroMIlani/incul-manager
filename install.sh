@@ -12,8 +12,8 @@ if ! grep -q "Debian GNU/Linux 12" /etc/os-release; then
     exit 1
 fi
 
-if ! echo "$XDG_CURRENT_DESKTOP" | grep -qE "XFCE|KDE"; then
-    echo "This script is Compatible only with XFCE and KDE."
+if ! echo "$XDG_CURRENT_DESKTOP" | grep -qE "XFCE|KDE|GNOME"; then
+    echo "This script is Compatible only with XFCE, KDE and GNOME."
     exit 1
 fi
 
