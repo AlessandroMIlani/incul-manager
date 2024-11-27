@@ -156,7 +156,8 @@ def sync():
             script_path = "incul-sync"
             run_script(script_path, container_name)
     
-        restart_panel()
+        if os.environ.get("XDG_CURRENT_DESKTOP") == "XFCE":
+            restart_panel()
     
     except subprocess.CalledProcessError as e:
         print("Error:", e)

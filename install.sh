@@ -12,8 +12,8 @@ if ! grep -q "Debian GNU/Linux 12" /etc/os-release; then
     exit 1
 fi
 
-if ! echo "$XDG_CURRENT_DESKTOP" | grep -q "XFCE"; then
-    echo "This script is intended for XFCE."
+if ! echo "$XDG_CURRENT_DESKTOP" | grep -qE "XFCE|KDE"; then
+    echo "This script is Compatible only with XFCE and KDE."
     exit 1
 fi
 
@@ -54,7 +54,7 @@ ssh-keygen -t rsa -b 4096 -C "$CURRENT_USER@incus-containers" -f "/home/$USER/.s
 echo "ssh-add /home/$USER/.ssh/incul-id_rsa > /dev/null 2>&1" >> /home/$USER/.bashrc 
 
 sudo cp -r /etc/inculs-manager/launcher-config/desktop-directories /home/$USER/.local/share/
-sudo cp /etc/inculs-manager/launcher-config/xfce-applications.menu /home/$USER/.config/menus
+sudo cp -a /etc/inculs-manager/launcher-config/. /home/$USER/.config/menus/
 
 if $need_reboot; then
     echo -e "\n\e[1;33mIncul-manager dependence needs restart for work correctly. Press any key to confirm the reboot...\e[0m"
