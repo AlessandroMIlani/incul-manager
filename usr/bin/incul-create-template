@@ -10,7 +10,7 @@ if ! incus network list | grep -q "def"; then
 fi
 
 # Ask the user for the template name
-read -p "Enter the name for the template: " template_name
+read -rp "Enter the name for the template: " template_name
 
 # Check if the template name is empty
 if [ -z "$template_name" ]; then
@@ -45,34 +45,34 @@ fi
 # launch incus
 incus admin init --minimal
 
-incus launch $container_image $template_name-template --network def
+incus launch $container_image "$template_name"-template --network def
 
 #copy files to container
-incus file push /etc/inculs-manager/config.sh $template_name-template/root/
+incus file push /etc/inculs-manager/config.sh "$template_name"-template/root/
 
-incus file push /etc/inculs-manager/container-scripts/create-user-$container_choice $template_name-template/root/incul-create-user
+incus file push /etc/inculs-manager/container-scripts/create-user-"$container_choice" "$template_name"-template/root/incul-create-user
 
-incus exec $template_name-template -- chmod +x incul-create-user
+incus exec "$template_name"-template -- chmod +x incul-create-user
 
 if [ "$container_choice" == "debian" ]; then
-    incus exec $template_name-template -- apt-get update
+    incus exec "$template_name"-template -- apt-get update
 elif [ "$container_choice" == "fedora" ]; then
-    while ! incus exec $template_name-template -- ping mirrors.fedoraproject.org -c 2 | grep -q "PING wildcard.fedoraproject.org"; do
+    while ! incus exec "$template_name"-template -- ping mirrors.fedoraproject.org -c 2 | grep -q "PING wildcard.fedoraproject.org"; do
         echo "Waiting for network to be ready..."
         sleep 1
     done
-    incus exec $template_name-template -- dnf --assumeyes upgrade 
-    incus exec $template_name-template -- dnf --assumeyes update 
+    incus exec "$template_name"-template -- dnf --assumeyes upgrade 
+    incus exec "$template_name"-template -- dnf --assumeyes update 
 fi
 
 # Install packages
 if [ "$container_choice" == "fedora" ]; then
-    incus exec $template_name-template -- dnf install --assumeyes thunar xfce4-terminal xfce4-notifyd xfwm4 ncurses openssh-server xpra openssl
+    incus exec "$template_name"-template -- dnf install --assumeyes thunar xfce4-terminal xfce4-notifyd xfwm4 ncurses openssh-server xpra openssl
 elif [ "$container_choice" == "debian" ]; then
-    incus exec $template_name-template -- apt-get install -y thunar xfce4-terminal xfce4-notifyd xfwm4 openssh-server xpra openssl
+    incus exec "$template_name"-template -- apt-get install -y thunar xfce4-terminal xfce4-notifyd xfwm4 openssh-server xpra openssl
 fi
 
 #create sudo user
-incus exec $template_name-template -- /root/incul-create-user
+incus exec "$template_name"-template -- /root/incul-create-user
 
 echo -e "\n\e[1;33mTemplate creation complete...\e[0m"
