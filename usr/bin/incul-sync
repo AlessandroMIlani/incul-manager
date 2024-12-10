@@ -2,14 +2,14 @@
 
 echo -e "\n\e[1;33mSynchronize host menu...\e[0m"
 
-gnome_flag=0
+gnome_flag=false
 # check the DE in use
 if echo $XDG_CURRENT_DESKTOP | grep -q "XFCE"; then
 	file_path="/home/$USER/.config/menus/xfce-applications.menu"
 elif echo $XDG_CURRENT_DESKTOP | grep -q "KDE"; then
 	file_path="/home/$USER/.config/menus/kf5-applications.menu"
 elif echo $XDG_CURRENT_DESKTOP | grep -q "GNOME"; then
-	gnome_flag=1
+	gnome_flag=true
 else
 	echo "Desktop environment not supported"
 	exit 1
@@ -39,14 +39,14 @@ layout_content="<Menuname>${container_name^}</Menuname>"
 # Use sed to insert menu
 C=$(echo $menu_content | sed 's/\//\\\//g')
 
-if gnome_flag=1; then
+if ! $gnome_flag; then
 	sed -i "/<\!--Insert-container-menu-->/ s/.*/${C}\n&/" "$file_path"
 fi
 
 # use sed to insert layout
 C=$(echo $layout_content | sed 's/\//\\\//g')
 
-if gnome_flag=1; then
+if ! $gnome_flag; then
 	sed -i "/<!--Insert-container-menu-layout-->/ s/.*/${C}\n&/" "$file_path"
 fi
 
@@ -112,7 +112,7 @@ for file in "$folder_path"/*.desktop; do
 		old_args=$(echo "$old_exec" | sed -E 's/(^| )%[fFuUiIcCkK]($| )//g')
 
 		# The template container not have an ssh key, so we need to login with password
-		if [[ "$container_name" == "incul-template" ]]; then
+		if [[ "$container_name" == *"-template" ]]; then
 		# Create the new Exec string
 			new_exec="Exec=bash -c 'xpra start ssh://$username:$password@$container_ip --title=\"${container_name^}: @title@\" --border=${colors[$index]},3 --exit-with-children --start-child=\"$old_args\"'"
 		else
@@ -126,7 +126,7 @@ for file in "$folder_path"/*.desktop; do
 	fi
 done
 
-if gnome_flag=1; then
+if $gnome_flag; then
 	containers=$(incus -c n list --format=csv)
 
 	containers=$(echo $containers | tr ' ' ',')
