@@ -9,8 +9,9 @@ import shutil
 import re
 
 # create  incul container
-def create(container_name):
-    subprocess.run(["incus", "copy", "incul-template", container_name])
+def create(container_name, template_name):
+    
+    subprocess.run(["incus", "copy", template_name, container_name])
     shutil.copy("/etc/inculs-manager/config.sh", f"/home/{os.environ['USER']}/.config/incul-manager/{container_name}-config.sh")
     
     # detach generic network and attach new network
@@ -55,7 +56,15 @@ def new_user(container_name):
         subprocess.run(["incus", "file", "push", f"/home/{os.environ['USER']}/.config/incul-manager/{container_name}-config.sh", f"{container_name}/root/config.sh"])
         subprocess.run(["incus", "exec", container_name, "--", "chmod", "+x", "/root/config.sh"])
         subprocess.run(["incus", "exec", container_name, "--", "/root/incul-create-user"])
-        subprocess.run(["incus", "exec", container_name, "--","sudo", "deluser", "--remove-all-file", "incul"])
+        
+        OS=subprocess.run(["incus", "exec", container_name, "--", "grep", "^ID=", "/etc/os-release"], capture_output=True, text=True ).stdout.lower()
+        print(OS)
+        time.sleep(10)
+        
+        if "fedora" in  subprocess.run(["incus", "exec", container_name, "--", "grep", "^ID=", "/etc/os-release"], capture_output=True, text=True ).stdout.lower():
+            subprocess.run(["incus", "exec", container_name, "--", "sudo", "userdel", "-f", "incul"])
+        else:
+            subprocess.run(["incus", "exec", container_name, "--", "sudo", "deluser", "--remove-all-files", "incul"])
         create_ssh_keys(container_name, username)
     else:
         print("Keeping the default user incul:incul")
@@ -121,7 +130,8 @@ def delete(container_name):
     subprocess.run(["incus", "network", "delete", f"net-{container_name}"])
 
     sync()
-    restart_panel()
+    if os.environ.get("XDG_CURRENT_DESKTOP") == "XFCE":
+        restart_panel()
 
 
 
@@ -190,12 +200,13 @@ def arg_check(container_name):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: incul-manager <action> [<container-name>]")
+        print("Usage: incul-manager <action> [<container-name> [<template-name>]]")
         sys.exit(1)
 
     action = sys.argv[1]
     container_name = sys.argv[2] if len(sys.argv) > 2 else None
-
+    template_name = sys.argv[3] if len(sys.argv) > 3 else None
+    
     actions = {
         "create": create,
         "start": start,
@@ -219,9 +230,14 @@ if __name__ == "__main__":
     if action in ["list", "init", "sync"]:
         actions[action]()
 
-    if action in ["create", "start", "pause", "stop", "restart", "backup", "delete"]:
+    if action in ["start", "pause", "stop", "restart", "backup", "delete"]:
         arg_check(container_name)
         actions[action](container_name)
+
+    if action == "create":
+        arg_check(container_name)
+        arg_check(template_name)
+        actions[action](container_name, template_name)
 
     # TODO: be able to create different templates
     if action == "create-template":

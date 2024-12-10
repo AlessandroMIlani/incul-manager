@@ -9,32 +9,70 @@ if ! incus network list | grep -q "def"; then
     incus network detach-profile incusbr0 default 
 fi
 
+# Ask the user for the template name
+read -p "Enter the name for the template: " template_name
+
+# Check if the template name is empty
+if [ -z "$template_name" ]; then
+    echo "Template name cannot be empty. Exiting..."
+    exit 1
+fi
+
+# Ask the user if they want a Debian or Fedora container
+PS3="Please select the container type: "
+options=("debian" "fedora")
+select container_choice in "${options[@]}"
+do
+    case $container_choice in
+        "debian"|"fedora")
+            break
+            ;;
+        *)
+            echo "Invalid option. Please select 1 for debian or 2 for fedora."
+            ;;
+    esac
+done
+
+if [ "$container_choice" == "fedora" ]; then
+    container_image="images:fedora/41"
+elif [ "$container_choice" == "debian" ]; then
+    container_image="images:debian/12"
+else
+    echo "Invalid container choice. Exiting..."
+    exit 1
+fi
+
 # launch incus
 incus admin init --minimal
 
-incus launch images:debian/12 incul-template --network def
+incus launch $container_image $template_name-template --network def
 
 #copy files to container
-incus file push /etc/inculs-manager/config.sh incul-template/root/
+incus file push /etc/inculs-manager/config.sh $template_name-template/root/
 
-incus file push /usr/bin/update-inculs-sources incul-template/root/
+incus file push /etc/inculs-manager/container-scripts/create-user-$container_choice $template_name-template/root/incul-create-user
 
-incus file push /usr/bin/incul-create-user incul-template/root/
+incus exec $template_name-template -- chmod +x incul-create-user
 
-#make executable
-incus exec incul-template -- chmod +x update-inculs-sources
-
-incus exec incul-template -- chmod +x incul-create-user
-
-#update container
-incus exec incul-template -- /root/update-inculs-sources
-
-incus exec incul-template -- apt-get update
+if [ "$container_choice" == "debian" ]; then
+    incus exec $template_name-template -- apt-get update
+elif [ "$container_choice" == "fedora" ]; then
+    while ! incus exec $template_name-template -- ping mirrors.fedoraproject.org -c 2 | grep -q "PING wildcard.fedoraproject.org"; do
+        echo "Waiting for network to be ready..."
+        sleep 1
+    done
+    incus exec $template_name-template -- dnf --assumeyes upgrade 
+    incus exec $template_name-template -- dnf --assumeyes update 
+fi
 
 # Install packages
-incus exec incul-template -- apt-get install thunar xfce4-terminal xfce4-notifyd xfwm4 openssh-server xpra openssl
+if [ "$container_choice" == "fedora" ]; then
+    incus exec $template_name-template -- dnf install --assumeyes thunar xfce4-terminal xfce4-notifyd xfwm4 ncurses openssh-server xpra openssl
+elif [ "$container_choice" == "debian" ]; then
+    incus exec $template_name-template -- apt-get install -y thunar xfce4-terminal xfce4-notifyd xfwm4 openssh-server xpra openssl
+fi
 
 #create sudo user
-incus exec incul-template -- /root/incul-create-user
+incus exec $template_name-template -- /root/incul-create-user
 
 echo -e "\n\e[1;33mTemplate creation complete...\e[0m"
