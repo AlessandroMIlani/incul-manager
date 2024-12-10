@@ -28,7 +28,7 @@ This project is a hobbyist endeavor and not developed by a security expert. It d
    This template includes essential applications like Thunar, XFCE4-terminal, and more.
 
 2. **Manage Containers**: Create and manage containers using commands like:
-   - `incul-manager create <container-name>` to create new containers.
+   - `incul-manager create <container-name> <template-name>` to create new containers.
    - `incul-manager list` to list all created containers.
    - `incul-manager delete <container-name>` to remove containers when no longer needed.
 
