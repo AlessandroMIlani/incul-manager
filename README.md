@@ -27,6 +27,10 @@ This project is a hobbyist endeavor and not developed by a security expert. It d
    ```
    This template includes essential applications like Thunar, XFCE4-terminal, and more.
 
+   Now is possible choose between the following templates:
+      - debian
+      - fedora 
+
 2. **Manage Containers**: Create and manage containers using commands like:
    - `incul-manager create <container-name> <template-name>` to create new containers.
    - `incul-manager list` to list all created containers.
