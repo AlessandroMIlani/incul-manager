@@ -4,15 +4,35 @@ echo -e "\n\e[1;33mClean host menu...\e[0m"
 
 # remove dir
 
-rm -rf /home/$USER/.local/share/applications
-rm -rf /home/$USER/.local/share/desktop-directories
-rm -rf /home/$USER/.config/menus
+rm -rf /home/"$USER"/.local/share/applications
+rm -rf /home/"$USER"/.local/share/desktop-directories
 
+# Get the current desktop environment
+DE=$XDG_CURRENT_DESKTOP
+MENU_FILE=""
+case "$DE" in
+    "KDE")
+        MENU_FILE="kf5-applications.menu"
+        ;;
+    "XFCE")
+        MENU_FILE="xfce-applications.menu"
+        ;;
+    *)
+        echo "Unsupported desktop environment: $DE"
+        exit 1
+        ;;
+esac
+
+# Delete the menu file if it exists
+if [ -f "$MENU_FILE" ]; then
+    rm -f "home/$USER/.config/menus/$MENU_FILE"
+else
+    echo "No menu file to delete"
+fi
 # recreate the directories
 
-mkdir -p /home/$USER/.local/share/applications
-mkdir -p /home/$USER/.local/share/desktop-directories
-mkdir -p /home/$USER/.config/menus
+mkdir -p /home/"$USER"/.local/share/applications
+mkdir -p /home/"$USER"/.local/share/desktop-directories
 
-sudo cp -r /etc/inculs-manager/launcher-config/desktop-directories /home/$USER/.local/share/
-sudo cp -a /etc/inculs-manager/launcher-config/. /home/$USER/.config/menus
+sudo cp -r /etc/inculs-manager/launcher-config/desktop-directories /home/"$USER"/.local/share/
+sudo cp -a /etc/inculs-manager/launcher-config/$MENU_FILE /home/"$USER"/.config/menus/
